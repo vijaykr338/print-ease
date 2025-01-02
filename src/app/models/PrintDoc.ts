@@ -1,5 +1,5 @@
 import mongoose, {Schema, Document} from "mongoose";
-import UserModel from "./User";
+import UserProfileModel from "./UserProfile";
 import FileModel from "./File";
 import StoreModel from "./Store";
 

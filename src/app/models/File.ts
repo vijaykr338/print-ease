@@ -1,8 +1,6 @@
 
 import mongoose, {Schema, Document} from "mongoose";
 
-import UserModel from "./User";
-
 
 
 export interface File extends Document{

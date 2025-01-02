@@ -7,6 +7,10 @@ import '@react-pdf-viewer/default-layout/lib/styles/index.css';
 import AddIcon from '@mui/icons-material/Add';
 import DeleteIcon from '@mui/icons-material/Delete';
 import { useRouter } from 'next/navigation';
+import { FileUpload } from '../../components/ui/FileUpload'; // Adjust the path to where your FileUpload component is
+import Swal from 'sweetalert2';
+import 'sweetalert2/src/sweetalert2.scss';
+import PrintIcon from '@mui/icons-material/Print';
 
 import PrintConfig from '../print-config/print-config'; // Adjust the path to where your PDFViewer component is
 
@@ -14,11 +18,35 @@ export default function MyPrints() {
   const [files, setFiles] = useState<File[]>([]);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [fileConfigs, setFileConfigs] = useState<{ [key: string]: any }>({});
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const router = useRouter();
 
-  const handleFileUpload = (uploadedFiles: FileList) => {
-    const newFiles = Array.from(uploadedFiles);
-    setFiles([...files, ...newFiles]);
+  const handleFileUpload = (newFiles: File[]) => {
+    const validFiles = newFiles.filter(file => 
+      file.type === 'application/pdf' || 
+      file.type === 'image/jpeg' || 
+      file.type === 'image/png' || 
+      file.type.includes('wordprocessingml')
+    );
+
+    const duplicateFiles = validFiles.filter(file => 
+      files.some(existingFile => existingFile.name === file.name)
+    );
+
+    if (duplicateFiles.length > 0) {
+      Swal.fire('Error', 'File Already Uploaded', 'error');
+      return;
+    }
+
+    if (validFiles.length !== newFiles.length) {
+      Swal.fire('Error', 'Invalid Format. Only PDF, JPG, and Word files are allowed.', 'error');
+      return;
+    }
+
+    setFiles([...files, ...validFiles]);
+    Swal.fire('Success', 'File Uploaded', 'success').then(() => {
+      window.scrollTo(0, 0);
+    });
   };
 
   const handleFileDelete = (fileToDelete: File) => {
@@ -40,13 +68,32 @@ export default function MyPrints() {
 
   const handlePrint = () => {
     const query = new URLSearchParams();
-    Object.keys(fileConfigs).forEach((fileName, index) => {
-      const config = fileConfigs[fileName];
-      query.append(`file${index}`, fileName);
+    let allConfigured = true;
+
+    files.forEach((file, index) => {
+      const config = fileConfigs[file.name];
+      if (!config || Object.keys(config).length === 0) {
+        allConfigured = false;
+      }
+      query.append(`file${index}`, file.name);
       query.append(`config${index}`, JSON.stringify(config));
     });
-    
+
+    if (!allConfigured) {
+      Swal.fire('Error', 'Please configure your files', 'error');
+      return;
+    }
+
     router.push(`/order-summary?${query.toString()}`);
+  };
+
+  const handleFileClick = (file: File) => {
+    if (selectedFile === file) {
+      setSelectedFile(null);
+    } else {
+      setSelectedFile(file);
+    }
+    setErrorMessage(null);
   };
 
   const renderPreview = (file: File) => {
@@ -77,23 +124,12 @@ export default function MyPrints() {
   };
 
   return (
-    <div className="max-w-2xl mx-auto bg-gray-900 text-white p-6">
-      <h1 className="text-3xl text-center font-semibold mb-10">My Prints</h1>
+    <div className={`bg-gray-900 text-white max-w-2xl mx-auto p-6`}>
+      <h1 className="text-4xl text-center font-semibold mb-10">My Prints</h1>
 
       {files.length === 0 && (
         <div className="flex justify-center items-center mb-4">
-          <label htmlFor="file-upload" className="cursor-pointer flex items-center gap-2 text-gray-400 hover:text-gray-200">
-            <AddIcon />
-            <span>Add Files</span>
-          </label>
-          <input
-            id="file-upload"
-            type="file"
-            accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
-            multiple
-            onChange={(e) => handleFileUpload(e.target.files!)}
-            className="hidden"
-          />
+          <FileUpload onChange={handleFileUpload} />
         </div>
       )}
 
@@ -110,7 +146,7 @@ export default function MyPrints() {
               key={index}
               className={`flex justify-between items-center cursor-pointer p-4 bg-gray-800 rounded-lg ${selectedFile === file ? "ring-2 ring-blue-500" : ""}`}
             >
-              <span onClick={() => setSelectedFile(file)}>
+              <span onClick={() => handleFileClick(file)}>
                 {file.name} {fileConfigs[file.name] ? "(configured)" : ""}
               </span>
               <button
@@ -124,8 +160,8 @@ export default function MyPrints() {
 
           {selectedFile && (
             <div className="mt-8">
-              <h2 className="text-xl font-semibold mb-4">
-                Preview: {selectedFile.name}
+              <h2 className="text-xl font-semibold mb-4 sm:text-xs md:text-lg">
+               <span className='text-gray-500'> Preview: </span>{selectedFile.name}
               </h2>
               {renderPreview(selectedFile)}
 
@@ -142,28 +178,65 @@ export default function MyPrints() {
           <div className="mt-8">
             <button
               onClick={() => document.getElementById('file-upload')?.click()}
-              className=" w-full bg-gray-700 text-white py-3 rounded-lg hover:bg-gray-600 transition-colors flex justify-center items-center gap-2"
+              className="w-full relative inline-flex h-12 overflow-hidden rounded-full p-[1px] focus:outline-none focus:ring-2 focus:ring-slate-400 focus:ring-offset-2 focus:ring-offset-slate-50"
             >
-              <AddIcon />
-              Upload More Files
+              <span className="absolute inset-[-1000%] animate-[spin_2s_linear_infinite] bg-[conic-gradient(from_90deg_at_50%_50%,#E2CBFF_0%,#393BB2_50%,#E2CBFF_100%)]" />
+              <span className="inline-flex h-full w-full cursor-pointer items-center justify-center rounded-full bg-slate-950 px-3 py-1 text-sm font-medium text-white backdrop-blur-3xl gap-2">
+                <AddIcon />Upload More Files
+              </span>
             </button>
             <input
               id="file-upload"
               type="file"
               accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
               multiple
-              onChange={(e) => handleFileUpload(e.target.files!)}
-              className=" hidden"
+              onChange={(e) => {
+                const newFiles = Array.from(e.target.files!);
+                const validFiles = newFiles.filter(file => 
+                  file.type === 'application/pdf' || 
+                  file.type === 'image/jpeg' || 
+                  file.type === 'image/png' || 
+                  file.type.includes('wordprocessingml')
+                );
+
+                const duplicateFiles = validFiles.filter(file => 
+                  files.some(existingFile => existingFile.name === file.name)
+                );
+
+                if (duplicateFiles.length > 0) {
+                  Swal.fire('Error', 'File Already Uploaded', 'error');
+                  return;
+                }
+
+                if (validFiles.length !== newFiles.length) {
+                  Swal.fire('Error', 'Invalid Format. Only PDF, JPG, and Word files are allowed.', 'error');
+                  return;
+                }
+
+                setFiles([...files, ...validFiles]);
+                Swal.fire('Success', 'File Uploaded', 'success').then(() => {
+                  window.scrollTo(0, 0);
+                });
+              }}
+              className="hidden"
             />
           </div>
 
-          <div className="mt-8">
-            <button
-              onClick={handlePrint}
-              className="w-full bg-blue-700 text-white py-3 rounded-lg hover:bg-blue-600 transition-colors"
-            >
-              Print
-            </button>
+          {errorMessage && (
+            <div className="mt-4 p-4 border border-red-700 rounded-lg">
+              <h2 className="font-semibold text-red-500">{errorMessage}</h2>
+            </div>
+          )}
+
+          <div className="mt-8 ">
+          
+        
+        <button onClick={handlePrint} className="w-full inline-flex h-12 animate-shimmer items-center justify-center rounded-md border border-slate-800 bg-[linear-gradient(110deg,#000103,45%,#1e2631,55%,#000103)] bg-[length:200%_100%] px-6 font-medium text-slate-400 transition-colors focus:outline-none focus:ring-2 focus:ring-slate-400 focus:ring-offset-2 focus:ring-offset-slate-50 gap-2">
+          <PrintIcon />
+          Print
+        </button>
+  
+      
           </div>
         </div>
       )}
