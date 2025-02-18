@@ -1,0 +1,6 @@
+change the app/my-prints/ and app/order-summary to use zustand store instead of usestate
+
+code app/api/file_upload/route.ts to properly handle incoming file via api, upload to
+azure and make instances of models
+
+migrate the databse (i have made some changes)
