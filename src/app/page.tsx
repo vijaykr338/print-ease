@@ -1,31 +1,18 @@
-import Link from "next/link";
-import AddIcon from "@mui/icons-material/Add";
-import { TypewriterEffectSmooth } from "../components/ui/TypeWriterEffect";
-import { BackgroundBeamsWithCollision } from "../components/ui/BackgroundBeamsWithCollision";
-import StartButton from "../components/StartButton";
-import { FlipWords } from "../components/ui/Flip-Words";
+import Link from 'next/link';
 
 export default function Home() {
   return (
-    <div className="h-[85vh] w-full relative text-white min-h-[80vh] flex flex-col items-center justify-center text-center mt-10">
-      <BackgroundBeamsWithCollision className="w-screen z-0">
-        {/* Add any children elements here if needed */}
-        <div className="relative z-10 flex justify-center items-center flex-col">
-          <TypewriterEffectSmooth
-            words={[{ text: "PrintHub for DTU" }]}
-            className=" mb-10 text-center"
-          />
-          <h2 className="text-2xl font-medium mb-8 text-center">
-            Print{" "}
-            <FlipWords
-              words={["Smartly", "Quickly", "Efficiently", "Easily"]}
-              className="text-2xl font-medium text-center"
-            />
-          </h2>
-
-          <StartButton />
-        </div>
-      </BackgroundBeamsWithCollision>
+    <div className="min-h-[80vh] flex flex-col items-center justify-center text-center">
+      <h1 className="text-4xl font-bold mb-6">Print Smart, Skip the Wait!</h1>
+      <p className="text-gray-600 mb-8 max-w-md">
+        Upload your documents and get them printed instantly with our smart printing service.
+      </p>
+      <Link
+        href="/my-prints"
+        className="bg-black text-white px-8 py-4 rounded-full hover:bg-gray-800 transition-colors"
+      >
+        Drop your PDF / START
+      </Link>
     </div>
   );
 }

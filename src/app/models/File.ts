@@ -1,15 +1,34 @@
-import mongoose, {Schema} from "mongoose";
-import { Config } from "@/interfaces";
 
-export interface File extends Omit<Config,'totalPrice'>{
+import mongoose, {Schema, Document} from "mongoose";
+
+import UserModel from "./User";
+
+
+
+export interface File extends Document{
+    fileID: string;
     userID: mongoose.Types.ObjectId;
-    link: string;  
+    name: string;
+    color: string;
+    orientation: string;
+    noOfCopies: number;
+    remarks: string;
+    link: string;
 }
 
 const FileSchema: Schema<File> = new Schema({
+    fileID: {
+        type: String,
+        required: true,
+        unique: true
+    },
     userID: {
         type: mongoose.Schema.Types.ObjectId,
         ref: "User", 
+        required: true,
+    },
+    name: {
+        type: String,
         required: true,
     },
     color: {
@@ -20,11 +39,7 @@ const FileSchema: Schema<File> = new Schema({
         type: String,
         required: true,
     },
-    sided:{
-        type:String,
-        required:true,
-    },
-    copies: {
+    noOfCopies: {
         type: Number,
         required: true,
     },
@@ -39,4 +54,5 @@ const FileSchema: Schema<File> = new Schema({
 })
 
 const FileModel = (mongoose.models.File as mongoose.Model<File>) || mongoose.model<File>("File", FileSchema)
+
 export default FileModel;
