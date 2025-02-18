@@ -28,7 +28,7 @@ jobs:
 
       - name: Build Next.js app
         env:
-          MONGODB_URI: ${{ secrets.NEXT_PUBLIC_MONGODB_URI }}
+          NEXT_PUBLIC_MONGODB_URI: ${{ secrets.NEXT_PUBLIC_MONGODB_URI }}
           AUTH_SECRET: ${{ secrets.AUTH_SECRET }}
           NEXTAUTH_SECRET: ${{ secrets.NEXTAUTH_SECRET }}
           AUTH_GOOGLE_ID: ${{ secrets.AUTH_GOOGLE_ID }}
