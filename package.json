@@ -3,9 +3,10 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev --turbopack",
+    "dev": "next dev",
     "build": "next build",
-    "start": "npm run build && next start",
+    "start": "/home/site/wwwroot/node_modules/next/dist/bin/next",
+    "startLocal": "next start",
     "lint": "next lint"
   },
   "dependencies": {
