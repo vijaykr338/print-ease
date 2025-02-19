@@ -4,10 +4,10 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "next build",
-    "start": "/home/site/wwwroot/node_modules/next/dist/bin/next",
-    "startLocal": "next start",
-    "lint": "next lint"
+  "build": "next build",
+  "start": "next start -p $PORT",
+  "startLocal": "next start",
+  "lint": "next lint"
   },
   "dependencies": {
     "@auth/mongodb-adapter": "^3.7.4",
