@@ -19,6 +19,7 @@ import useFileStore from "@/store/filesStore";
 import jsPDF from "jspdf";
 import html2canvas from "html2canvas";
 import PacmanLoader from "react-spinners/PacmanLoader";
+import TaskAltIcon from "@mui/icons-material/TaskAlt";
 
 export default function MyPrints() {
   const store = useFileStore();
@@ -35,34 +36,38 @@ export default function MyPrints() {
   }, [store.filesWithConfigs]);
 
   const fileConfigs = useMemo(() => {
-    const configs: { [key: string]: any } = {};
-    fileData.forEach(({ file, config }) => {
-      configs[file.name] = config;
-    });
-    return configs;
+    return Object.fromEntries(
+      fileData.map(({ file, config }) => [file.name, config])
+    );
   }, [fileData]);
 
-  const handleFileUpload = useCallback(
-    (newFiles: File[]) => {
-      const existingFiles = fileData.map((item) => item.file.name);
+  const handleFileUpload = useCallback((newFiles: File[]) => {
+    setFileData((prevFileData) => {
+      const existingFilesSet = new Set(
+        prevFileData.map((item) => item.file.name)
+      );
       const duplicateFiles = newFiles.filter((file) =>
-        existingFiles.includes(file.name)
+        existingFilesSet.has(file.name)
       );
 
       if (duplicateFiles.length > 0) {
-        Swal.fire(
-          "Error",
-          `The following files are already uploaded: ${duplicateFiles
+        Swal.fire({
+          title: "Duplicate Files",
+          text: `These files are already uploaded:\n${duplicateFiles
             .map((file) => file.name)
             .join(", ")}`,
-          "error"
-        );
-        return;
+          icon: "warning",
+        });
+        return prevFileData; // Prevent updating state
       }
 
-      if (fileData.length + newFiles.length > 3) {
-        Swal.fire("Error", "You can upload a maximum of 3 files.", "error");
-        return;
+      if (prevFileData.length + newFiles.length > 3) {
+        Swal.fire({
+          title: "File Limit Exceeded",
+          text: "You can upload a maximum of 3 files.",
+          icon: "error",
+        });
+        return prevFileData;
       }
 
       const validFiles = newFiles.filter(
@@ -71,16 +76,25 @@ export default function MyPrints() {
       );
 
       if (validFiles.length !== newFiles.length) {
-        Swal.fire(
-          "Error",
-          "Invalid Format or File Size. Only PDF files under 30MB are allowed.",
-          "error"
-        );
-        return;
+        Swal.fire({
+          title: "Invalid File",
+          text: "Only PDF files under 30MB are allowed.",
+          icon: "error",
+        });
+        return prevFileData;
       }
 
-      setFileData((prev) => [
-        ...prev,
+      Swal.fire({
+        title: "Success",
+        text: "File Uploaded Successfully!",
+        icon: "success",
+      }).then(() => {
+        window.scrollTo(0, 0);
+        setSelectedFile(null);
+      });
+
+      return [
+        ...prevFileData,
         ...validFiles.map((file) => ({
           file,
           config: {
@@ -92,28 +106,35 @@ export default function MyPrints() {
             specificRange: "",
           },
         })),
-      ]);
-
-      Swal.fire("Success", "File Uploaded", "success").then(() => {
-        window.scrollTo(0, 0);
-      });
-    },
-    [fileData]
-  );
+      ];
+    });
+  }, []);
 
   const handleFileDelete = useCallback(
     (fileToDelete: File) => {
-      setFileData((prev) => {
-        const updatedFiles = prev.filter(({ file }) => file !== fileToDelete);
-        if (updatedFiles.length === 0) {
-          store.clearAll(); // Clear the store
-          router.push("/Start"); // Route to start page if no files left
+      Swal.fire({
+        title: "Are you sure?",
+        text: "This file will be permanently deleted.",
+        icon: "warning",
+        showCancelButton: true,
+        confirmButtonColor: "#d33",
+        cancelButtonColor: "#3085d6",
+        confirmButtonText: "Yes, delete it!",
+      }).then((result) => {
+        if (result.isConfirmed) {
+          setFileData((prev) =>
+            prev.filter(({ file }) => file !== fileToDelete)
+          );
+          if (selectedFile === fileToDelete) setSelectedFile(null);
+
+          if (fileData.length === 1) {
+            store.clearAll();
+            router.push("/Start");
+          }
         }
-        return updatedFiles;
       });
-      if (selectedFile === fileToDelete) setSelectedFile(null);
     },
-    [selectedFile, router, store]
+    [fileData, selectedFile, router, store]
   );
 
   const handleConfigSave = useCallback((fileName: string, config: any) => {
@@ -136,17 +157,26 @@ export default function MyPrints() {
     if (!allConfigured) {
       Swal.fire(
         "Error",
-        "Please configure all files before printing. Click on the file to set the configurations.",
+        "Please configure all files before printing.",
         "error"
       );
       return;
     }
 
-    store.clearAll(); // Clear the store to avoid duplicates
-    fileData.forEach(({ file, config }) => store.addFile(file, config));
-
-    // Ensure fileData is not cleared before navigation
-    router.push(`/order-summary`);
+    Swal.fire({
+      title: "Confirm Print",
+      text: "Are you sure you want to proceed with printing?",
+      icon: "question",
+      showCancelButton: true,
+      confirmButtonText: "Yes, proceed",
+      cancelButtonText: "Cancel",
+    }).then((result) => {
+      if (result.isConfirmed) {
+        store.clearAll();
+        fileData.forEach(({ file, config }) => store.addFile(file, config));
+        router.push("/order-summary");
+      }
+    });
   }, [fileData, store, router]);
 
   const handleFileClick = useCallback(
@@ -172,7 +202,14 @@ export default function MyPrints() {
       const fileURL = URL.createObjectURL(selectedFile);
       return (
         <Worker workerUrl="https://unpkg.com/pdfjs-dist@3.11.174/build/pdf.worker.min.js">
-          <div style={{ height: "750px" }}>
+          <div
+            style={{
+              height: "400px",
+              maxHeight: "80vh",
+              minHeight: "300px",
+              overflow: "auto",
+            }}
+          >
             <Viewer fileUrl={fileURL} />
           </div>
         </Worker>
@@ -271,23 +308,30 @@ export default function MyPrints() {
         <h2 className="text-xl text-white font-semibold mb-4">
           Uploaded Files
         </h2>
-        <p className="text-gray-300 text-sm font-light">
+        <p className="text-gray-300 text-sm font-light  ">
           Click on the file to set the configurations.
         </p>
         {fileData.map(({ file }, index) => (
           <div
             key={index}
-            className={`flex justify-between items-center cursor-pointer p-4 bg-gray-900 text-white  rounded-lg ${
-              selectedFile === file ? "ring-2 ring-blue-500" : ""
+            className={`relative flex justify-between items-center cursor-pointer p-4 bg-gray-900 text-white rounded-lg transition-all
+            ${selectedFile === file ? "ring-2 ring-blue-500" : ""}
+            ${
+              fileData.find((item) => item.file.name === file.name)?.config
+                .configured
+                ? ""
+                : "animate-border"
             }`}
-            onClick={() => handleFileClick(file)} // Apply click handler to the entire div
+            onClick={() => handleFileClick(file)}
           >
             <span>
               {file.name}{" "}
               {fileData.find((item) => item.file.name === file.name)?.config
-                .configured
-                ? "(configured)"
-                : ""}
+                .configured ? (
+                <TaskAltIcon className="text-green-500" />
+              ) : (
+                <span className="ml-5 font-light animate-pulse">Click Me</span>
+              )}
             </span>
             <button
               onClick={(e) => {

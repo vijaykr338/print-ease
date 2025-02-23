@@ -53,15 +53,22 @@ export default function OrderSummary() {
 
   const handlePayment = async () => {
     try {
+      if (!session) {
+        Swal.fire("Error", "You need to be logged in to proceed.", "error");
+        return;
+      }
+
       if (typeof window.Razorpay !== "function") {
         Swal.fire("Error", "Payment gateway not available", "error");
         return;
       }
+
       const data = await axios.post("/api/razorpay/create_order", {
         totalPrice: totalPrice,
       });
-      if (data.status == 500) {
-        throw Error("internal server error");
+
+      if (data.status === 500) {
+        throw Error("Internal server error");
       }
 
       const { orderId, amount, currency } = data.data;
@@ -73,7 +80,6 @@ export default function OrderSummary() {
         order_id: orderId,
         description: "Order Payment",
         handler: async (response: any) => {
-          //adding details to formdata and sending to backend
           const formData = new FormData();
           formData.append("paymentId", response.razorpay_payment_id);
           formData.append("user_id", session?.user?.id || "");
@@ -85,9 +91,8 @@ export default function OrderSummary() {
               JSON.stringify(fileWithConfig.config)
             );
           });
-          //loader
 
-          setLoading(true); // Ensure loading state is set to true
+          setLoading(true);
           await axios.post("/api/razorpay/verify_payment", {
             razorpay_order_id: response.razorpay_order_id,
             razorpay_payment_id: response.razorpay_payment_id,
@@ -95,7 +100,7 @@ export default function OrderSummary() {
           });
           await axios.post("/api/file_upload", formData);
           Swal.fire("Success", "Payment successful", "success").then(() => {
-            setLoading(false); // Ensure loading state is set to false after success
+            setLoading(false);
             router.push(`/my-prints`);
           });
         },
@@ -111,6 +116,7 @@ export default function OrderSummary() {
     } catch (error) {
       console.error("Payment Error:", error);
       Swal.fire("Error", "Failed to process payment", "error");
+      setLoading(false);
     }
   };
 
@@ -121,7 +127,7 @@ export default function OrderSummary() {
   return (
     <div className="mt-[100px] max-w-2xl mx-auto p-6 rounded-lg bg-gray-900 dark:bg-gray-800 text-white relative">
       {loading && (
-        <div className="fixed inset-0 z-50 flex justify-center items-center flex-col bg-black  bg-opacity-80">
+        <div className="fixed inset-0 z-50 flex justify-center items-center flex-col bg-black bg-opacity-80">
           <PacmanLoader
             color="white"
             loading={loading}
@@ -132,7 +138,7 @@ export default function OrderSummary() {
           <FlipWords
             words={["Uploading Files", "Fetching Data", "Proceeding to Print"]}
             className="text-gray-700 font-extralight mt-6"
-          ></FlipWords>
+          />
         </div>
       )}
       {!loading && (
@@ -151,6 +157,7 @@ export default function OrderSummary() {
             </h2>
             <button
               onClick={handlePayment}
+              disabled={loading} // Disable button while loading
               className="w-full relative inline-flex h-12 overflow-hidden rounded-full p-[1px] focus:outline-none focus:ring-2 focus:ring-slate-400 focus:ring-offset-2 focus:ring-offset-slate-50"
             >
               <span className="absolute inset-[-1000%] animate-[spin_2s_linear_infinite] bg-[conic-gradient(from_90deg_at_50%_50%,#E2CBFF_0%,#393BB2_50%,#E2CBFF_100%)]" />

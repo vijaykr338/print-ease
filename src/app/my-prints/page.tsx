@@ -54,7 +54,7 @@ export default function OrderHistory() {
           <h1 className=" w-full text-center h-full text-xl sm:text-2xl font-bold mb-4 px-2 text-white">
             My Orders
           </h1>
-          <hr />
+          <hr className="mb-4" />
           <Suspense
             fallback={
               <div className="flex items-center justify-center min-h-[200px]">
