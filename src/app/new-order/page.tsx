@@ -202,7 +202,14 @@ export default function MyPrints() {
       const fileURL = URL.createObjectURL(selectedFile);
       return (
         <Worker workerUrl="https://unpkg.com/pdfjs-dist@3.11.174/build/pdf.worker.min.js">
-          <div style={{ height: "750px" }}>
+          <div
+            style={{
+              height: "400px",
+              maxHeight: "80vh",
+              minHeight: "300px",
+              overflow: "auto",
+            }}
+          >
             <Viewer fileUrl={fileURL} />
           </div>
         </Worker>
@@ -301,16 +308,21 @@ export default function MyPrints() {
         <h2 className="text-xl text-white font-semibold mb-4">
           Uploaded Files
         </h2>
-        <p className="text-gray-300 text-sm font-light">
+        <p className="text-gray-300 text-sm font-light  ">
           Click on the file to set the configurations.
         </p>
         {fileData.map(({ file }, index) => (
           <div
             key={index}
-            className={`flex justify-between items-center cursor-pointer p-4 bg-gray-900 text-white  rounded-lg ${
-              selectedFile === file ? "ring-2 ring-blue-500" : ""
+            className={`relative flex justify-between items-center cursor-pointer p-4 bg-gray-900 text-white rounded-lg transition-all
+            ${selectedFile === file ? "ring-2 ring-blue-500" : ""}
+            ${
+              fileData.find((item) => item.file.name === file.name)?.config
+                .configured
+                ? ""
+                : "animate-border"
             }`}
-            onClick={() => handleFileClick(file)} // Apply click handler to the entire div
+            onClick={() => handleFileClick(file)}
           >
             <span>
               {file.name}{" "}
@@ -318,7 +330,7 @@ export default function MyPrints() {
                 .configured ? (
                 <TaskAltIcon className="text-green-500" />
               ) : (
-                ""
+                <span className="ml-5 font-light animate-pulse">Click Me</span>
               )}
             </span>
             <button
