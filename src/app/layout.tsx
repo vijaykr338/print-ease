@@ -4,7 +4,7 @@ import { Inter, Permanent_Marker, Poppins } from "next/font/google";
 import Nav from "@/components/home/Nav";
 import { SessionProvider } from "next-auth/react";
 import ServiceWorkerRegister from "@/components/ServiceWorkerRegister";
-
+import Footer from "@/components/Footer"
 const inter = Inter({ subsets: ["latin"] });
 const permanentMarker = Permanent_Marker({ subsets: ["latin"], weight: "400" });
 const poppins = Poppins({ subsets: ["latin"], weight: ["400", "700"] });
@@ -28,6 +28,7 @@ export default function RootLayout({
           <Nav/>
           <ServiceWorkerRegister></ServiceWorkerRegister>
           <main className="bg-black w-full">{children}</main>
+          <Footer/>
         </SessionProvider>
       </body>
     </html>

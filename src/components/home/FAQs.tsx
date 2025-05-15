@@ -1,14 +1,12 @@
-"use client"
+'use client';
 
-import React from 'react';
+import React, { useState } from 'react';
 
-// Define the structure for a single FAQ item
 interface FaqItem {
   question: string;
   answer: string;
 }
 
-// Sample data based on the image
 const faqData: FaqItem[] = [
   {
     question: 'How long does processing take?',
@@ -21,22 +19,27 @@ const faqData: FaqItem[] = [
       'We support most common document formats including PDF, DOCX, PPT, TXT, and image files (JPG, PNG). If you have a special format, contact support.',
   },
   {
-    question: 'How long is my OTP valid?',
+    question: 'Do I need to pay extra?',
     answer:
-      "Your OTP remains valid for 48 hours after your print job is complete. After that, you'll need to request a new one through our system.",
+      "Not a penny!",
   },
   {
-    question: 'Can I cancel a print job?',
+    question: 'Can I upload even when the shop is closed?',
     answer:
-      'Yes, you can cancel your print job at any time before it enters the processing stage. Once processing begins, cancellation may not be possible.',
+      'Absolutely, Just go and collect it the next day',
   },
 ];
 
 const FaqSection: React.FC = () => {
+  const [activeIndex, setActiveIndex] = useState<number | null>(null);
+
+  const toggleAccordion = (index: number) => {
+    setActiveIndex(activeIndex === index ? null : index);
+  };
+
   return (
     <section className="w-full py-16 sm:py-20 lg:py-24 ">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-        {/* Section Header */}
         <div className="text-center mb-12">
           <h2 className="text-3xl font-bold tracking-tight text-white sm:text-4xl">
             Common Questions
@@ -46,20 +49,58 @@ const FaqSection: React.FC = () => {
           </p>
         </div>
 
-        {/* FAQ Grid */}
-        <div className="grid grid-cols-1 gap-8 md:grid-cols-2 lg:gap-12">
-          {faqData.map((item, index) => (
-            <div key={index} className="bg-neutral-800 rounded-lg p-6 ">
-              <h3 className="text-lg font-semibold leading-6 text-white">
-                {item.question}
-              </h3>
-              <p className="mt-2 text-base text-gray-300">{item.answer}</p>
-            </div>
-          ))}
-        </div>
+        <div className='flex flex-col items-center'>
+  {faqData.map((item, index) => (
+    <Accordion
+      key={index}
+      question={item.question}
+      answer={item.answer}
+    />
+  ))}
+</div>
       </div>
     </section>
   );
 };
 
 export default FaqSection;
+
+
+interface AccordionProps {
+  question: string;
+  answer: string;
+}
+
+const Accordion: React.FC<AccordionProps> = ({ question, answer }) => {
+  const [isOpen, setIsOpen] = useState(false);
+
+  const toggleOpen = () => setIsOpen(!isOpen);
+
+  return (
+    <div className="bg-neutral-800 rounded-lg p-6 mb-4 w-[80vw]">
+      <div
+        className="flex justify-between items-center cursor-pointer"
+        onClick={toggleOpen}
+      >
+        <h3 className="text-lg font-semibold leading-6 text-white">{question}</h3>
+        <svg
+          className={`w-6 h-6 text-white transform transition-transform duration-300 ${
+            isOpen ? "rotate-180" : "rotate-0"
+          }`}
+          fill="none"
+          stroke="currentColor"
+          strokeWidth={2}
+          viewBox="0 0 24 24"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            d="M19 9l-7 7-7-7"
+          />
+        </svg>
+      </div>
+      {isOpen && <p className="mt-2 text-base text-gray-300">{answer}</p>}
+    </div>
+  );
+};

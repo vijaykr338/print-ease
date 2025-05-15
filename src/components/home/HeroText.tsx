@@ -2,12 +2,12 @@ import { CheckCircle, Clock, Bell } from 'lucide-react';
 
 const HeroText = () => {
   return (
-    <div className="order-2 md:order-1">
-      <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-6 leading-tight">
+    <div className="order-1">
+      <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold leading-tight">
         <span className="text-[#6C63FF]">Print</span>Ease: Skip The Queue
       </h1>
-      <p className="text-lg md:text-xl text-neutral-300 mb-8">
-        Upload documents, receive OTP, get notified when ready. College printing made simple and queue-free.
+      <p className="text-lg md:text-xl text-neutral-300 mb-8 mt-2">
+        Cuz who wants to stand in crowd just to get your lab file printed just before classes? No one right.
       </p>
       <div className="flex flex-col sm:flex-row gap-4">
         <a

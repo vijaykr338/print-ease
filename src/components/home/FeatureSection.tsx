@@ -8,8 +8,16 @@ const features = [
     icon: <CloudUpload className="h-7 w-7 text-[#6C63FF]" />,
     points: [
       "Multiple file formats (.doc, .pdf, .ppt)",
-      "Batch uploads for multiple documents",
-      "Simple drag-and-drop interface",
+      "Simple interface",
+    ],
+  },
+  {
+    title: "Queue-free Experience",
+    description: "Submit your documents remotely and pick them up when ready. No more standing in long lines.",
+    icon: <Clock className="h-7 w-7 text-[#6C63FF]" />,
+    points: [
+      "Save up to 15 minutes per print job",
+      "Pick up at your convenience",
     ],
   },
   {
@@ -19,7 +27,6 @@ const features = [
     points: [
       "One-time password for each print job",
       "Encrypted document storage",
-      "Automatic OTP expiration",
     ],
   },
   {
@@ -27,19 +34,8 @@ const features = [
     description: "We value your privacy. All data is encrypted and deleted after processing.",
     icon: <ShieldCheck className="h-7 w-7 text-[#6C63FF]" />,
     points: [
-      "Military-grade AES encryption",
       "No data retention after print",
       "Privacy-focused infrastructure",
-    ],
-  },
-  {
-    title: "Queue-free Experience",
-    description: "Submit your documents remotely and pick them up when ready. No more standing in long lines.",
-    icon: <Clock className="h-7 w-7 text-[#6C63FF]" />,
-    points: [
-      "Save up to 45 minutes per print job",
-      "Pick up at your convenience",
-      "Fair processing order",
     ],
   },
   {
@@ -49,7 +45,6 @@ const features = [
     points: [
       "Multiple paper type options",
       "Color or black & white selection",
-      "Binding and finishing options",
     ],
   },
   {
@@ -58,7 +53,6 @@ const features = [
     icon: <ClipboardList className="h-7 w-7 text-[#6C63FF]" />,
     points: [
       "Complete job history archive",
-      "Real-time status updates",
       "Reprint previously submitted documents",
     ],
   },
@@ -74,7 +68,7 @@ export default function FeaturesSection() {
         </p>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mx-auto px-8">
         {features.map((feature, idx) => (
           <FeatureCard key={idx} {...feature} />
         ))}

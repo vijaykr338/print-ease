@@ -1,8 +1,13 @@
 "use-client"
+
+import Image from "next/image";
+
 const HeroImageCard = () => {
     return (
-      <div className="order-1 md:order-2 relative">
-        <div className="bg-neutral-800 rounded-xl overflow-hidden shadow-xl border border-neutral-700 transform hover:scale-[1.02] transition-transform duration-500">
+      <div className="order-2 relative">
+        <div className="bg-neutral-800 rounded-xl overflow-hidden shadow-xl border
+         border-neutral-700 transform hover:scale-[1.02] transition-transform duration-500">
+          
           <div className="p-4 bg-neutral-800 border-b border-neutral-700 flex items-center">
             <div className="flex space-x-2">
               <span className="w-3 h-3 rounded-full bg-red-500" />
@@ -13,11 +18,12 @@ const HeroImageCard = () => {
           </div>
   
           <div className="p-6">
-            <img
+            <Image
               src="/3411083.jpg"
               alt="Professional using PrintEase service"
-              className="w-full h-auto rounded object-cover"
-             
+              className="rounded object-cover"
+              width={40}
+              height={40}
             />
   
             <div className="mt-6 p-4 bg-neutral-900 rounded-lg border border-neutral-700">

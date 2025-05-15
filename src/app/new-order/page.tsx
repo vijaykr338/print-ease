@@ -20,6 +20,7 @@ import jsPDF from "jspdf";
 import html2canvas from "html2canvas";
 import PacmanLoader from "react-spinners/PacmanLoader";
 import TaskAltIcon from "@mui/icons-material/TaskAlt";
+import Image from "next/image";
 
 export default function MyPrints() {
   const store = useFileStore();
@@ -211,7 +212,7 @@ export default function MyPrints() {
 
     if (selectedFile.type.startsWith("image/")) {
       return (
-        <img
+        <Image
           src={URL.createObjectURL(selectedFile)}
           alt="Preview"
           className="w-full rounded-lg"

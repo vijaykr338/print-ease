@@ -4,6 +4,7 @@ import DeleteIcon from "@mui/icons-material/Delete";
 import AddIcon from "@mui/icons-material/Add";
 import Swal from "sweetalert2";
 import PacmanLoader from "react-spinners/PacmanLoader";
+import Image from "next/image";
 
 interface CollageEditorProps {
   initialImages: File[];
@@ -193,7 +194,7 @@ const CollageEditor: React.FC<CollageEditorProps> = ({
             }}
             onClick={() => setSelectedImage(image.id)}
           >
-            <img
+            <Image
               src={image.url}
               alt="collage"
               style={{
