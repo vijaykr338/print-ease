@@ -31,7 +31,7 @@
     "lucide-react": "^0.487.0",
     "mongodb": "^6.12.0",
     "mongoose": "^8.9.2",
-    "next": "15.1.2",
+    "next": "15.1.11",
     "next-auth": "^5.0.0-beta.25",
     "pdfjs-dist": "^3.0.279",
     "razorpay": "^2.9.5",
