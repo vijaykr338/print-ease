@@ -1,77 +1,103 @@
+"use client";
+
 import FeatureCard from "./FeatureCard";
-import { CloudUpload, ShieldCheck, Key ,ClipboardList,Clock,Settings} from "lucide-react"; // Or use Heroicons or your custom SVGs
+import {
+  CloudUpload,
+  ShieldCheck,
+  Key,
+  ClipboardList,
+  Clock,
+  Settings,
+} from "lucide-react";
 
 const features = [
   {
-    title: "Easy Document Upload",
-    description: "Upload your documents from anywhere using our intuitive interface. Support for multiple file formats.",
-    icon: <CloudUpload className="h-7 w-7 text-[#6C63FF]" />,
-    points: [
-      "Multiple file formats (.doc, .pdf, .ppt)",
-      "Simple interface",
-    ],
+    title: "Easy Upload",
+    description:
+      "Upload from anywhere using our intuitive interface. Support for .doc, .pdf, .ppt.",
+    icon: <CloudUpload size={28} />,
+    points: ["Multiple formats", "Simple UI"],
+    accentColor: "text-brand-cyan",
   },
   {
-    title: "Queue-free Experience",
-    description: "Submit your documents remotely and pick them up when ready. No more standing in long lines.",
-    icon: <Clock className="h-7 w-7 text-[#6C63FF]" />,
-    points: [
-      "Save up to 15 minutes per print job",
-      "Pick up at your convenience",
-    ],
+    title: "Queue-free",
+    description:
+      "Submit remotely and pick up when ready. No more long lines at the photocopy shop.",
+    icon: <Clock size={28} />,
+    points: ["Save 15+ mins", "Pick up anytime"],
+    accentColor: "text-brand-purple",
   },
   {
-    title: "Secure OTP Verification",
-    description: "Receive a unique OTP for each print job. Ensures your documents are collected only by you.",
-    icon: <Key className="h-7 w-7 text-[#6C63FF]" />,
-    points: [
-      "One-time password for each print job",
-      "Encrypted document storage",
-    ],
+    title: "Secure OTP",
+    description:
+      "Receive a unique OTP for each print job to ensure your documents stay yours.",
+    icon: <Key size={28} />,
+    points: ["One-time use", "Encrypted storage"],
+    accentColor: "text-brand-cyan",
   },
   {
-    title: "End-to-End Privacy",
-    description: "We value your privacy. All data is encrypted and deleted after processing.",
-    icon: <ShieldCheck className="h-7 w-7 text-[#6C63FF]" />,
-    points: [
-      "No data retention after print",
-      "Privacy-focused infrastructure",
-    ],
+    title: "Total Privacy",
+    description:
+      "We value your privacy. All data is encrypted and deleted after processing.",
+    icon: <ShieldCheck size={28} />,
+    points: ["No retention", "Safe infra"],
+    accentColor: "text-brand-purple",
   },
   {
-    title: "Print Customization",
-    description: "Customize your print settings before submission. Choose paper quality, color, and binding options.",
-    icon: <Settings className="h-7 w-7 text-[#6C63FF]" />,
-    points: [
-      "Multiple paper type options",
-      "Color or black & white selection",
-    ],
+    title: "Custom Vibe",
+    description:
+      "Choose paper quality, color, and binding options before you hit print.",
+    icon: <Settings size={28} />,
+    points: ["Paper types", "B&W or Color"],
+    accentColor: "text-brand-cyan",
   },
   {
-    title: "Job History & Tracking",
-    description: "View your complete print history and track current jobs in real-time through your dashboard.",
-    icon: <ClipboardList className="h-7 w-7 text-[#6C63FF]" />,
-    points: [
-      "Complete job history archive",
-      "Reprint previously submitted documents",
-    ],
+    title: "Live Tracking",
+    description:
+      "View your history and track current jobs in real-time through your dashboard.",
+    icon: <ClipboardList size={28} />,
+    points: ["History archive", "Quick reprint"],
+    accentColor: "text-brand-purple",
   },
 ];
 
 export default function FeaturesSection() {
   return (
-    <section className="container mx-auto px-4 py-20">
-      <div className="text-center mb-16">
-        <h2 className="text-4xl font-bold text-white mb-4">Features</h2>
-        <p className="text-neutral-400 max-w-2xl mx-auto">
-          Our platform streamlines the printing process, saving you time and eliminating the frustration of waiting in long queues.
-        </p>
-      </div>
+    <section className="bg-brand-matte py-24 overflow-hidden antialiased transform-gpu">
+      <div className="container mx-auto px-6">
+        {/* Header Section */}
+        <div className="text-center mb-24 relative">
+          {/* Subtle Ambient Glow replacing the dotted grid */}
+          <div className="absolute inset-0 flex justify-center items-center pointer-events-none">
+            <div className="w-64 h-64 bg-brand-cyan/5 blur-[100px] rounded-full" />
+          </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mx-auto px-8">
-        {features.map((feature, idx) => (
-          <FeatureCard key={idx} {...feature} />
-        ))}
+          <div className="inline-flex items-center gap-2 bg-brand-matte shadow-neu-in px-4 py-2 rounded-full mb-6 border border-white/5">
+            <div className="w-1.5 h-1.5 bg-brand-cyan rounded-full shadow-glow-cyan" />
+            <span className="text-gray-500 font-black text-[10px] uppercase tracking-[0.3em]">
+              Premium Features
+            </span>
+          </div>
+
+          <h2 className="text-5xl md:text-7xl font-black text-white mb-6 uppercase tracking-tighter italic relative z-10">
+            The{" "}
+            <span className="text-brand-cyan drop-shadow-glow-cyan">Print</span>{" "}
+            Perks
+          </h2>
+
+          <p className="text-gray-400 font-medium max-w-xl mx-auto text-base md:text-lg leading-relaxed relative z-10">
+            Streamlining the grind so you can focus on the grade.
+            <br className="hidden md:block" />
+            Everything you need for a queue-free life.
+          </p>
+        </div>
+
+        {/* Features Grid: High Performance Spacing */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10 max-w-6xl mx-auto">
+          {features.map((feature, idx) => (
+            <FeatureCard key={idx} {...feature} />
+          ))}
+        </div>
       </div>
     </section>
   );

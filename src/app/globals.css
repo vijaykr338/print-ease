@@ -3,5 +3,24 @@
 @tailwind utilities;
 
 body {
-  background-color: black;
+  @apply bg-brand-matte;
+}
+
+@keyframes float {
+  0%,
+  100% {
+    transform: translateY(0) rotate(0deg);
+  }
+  50% {
+    transform: translateY(-15px) rotate(5deg);
+  }
+}
+.animate-float {
+  animation: float 4s ease-in-out infinite;
+}
+.delay-200 {
+  animation-delay: 0.5s;
+}
+.delay-500 {
+  animation-delay: 1s;
 }

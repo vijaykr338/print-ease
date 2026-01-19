@@ -1,13 +1,11 @@
 "use client";
 
-import { useSearchParams } from "next/navigation";
 import { useEffect, useState, Suspense } from "react";
 import CurrencyRupeeIcon from "@mui/icons-material/CurrencyRupee";
-import { BackgroundGradient } from "@/components/ui/BackgroundGradient";
 import { useSession } from "next-auth/react";
 import axios from "axios";
 import { format } from "date-fns";
-
+import PacmanLoader from "react-spinners/PacmanLoader";
 
 interface OrderDetails {
   date: Date;
@@ -20,15 +18,15 @@ interface OrderDetails {
 export default function OrderHistory() {
   const { data: session } = useSession();
   const [orderDetails, setOrderDetails] = useState<OrderDetails[]>([]);
-
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     if (!session?.user?.id) return;
-  
+
     const fetchOrders = async () => {
       try {
         const { data } = await axios.get(
-          `${process.env.NEXT_PUBLIC_BASE_URL}/api/printdoc?user_id=${session.user?.id}`
+          `${process.env.NEXT_PUBLIC_BASE_URL}/api/printdoc?user_id=${session.user?.id}`,
         );
 
         const transformedOrders: OrderDetails[] = data.map((order: any) => ({
@@ -42,6 +40,8 @@ export default function OrderHistory() {
         setOrderDetails(transformedOrders);
       } catch (e: any) {
         console.error("Error fetching orders:", e.message);
+      } finally {
+        setLoading(false);
       }
     };
 
@@ -49,82 +49,139 @@ export default function OrderHistory() {
   }, [session]);
 
   if (!session) {
-    return <h1 className="text-white text-3xl">Login to continue</h1>;
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-brand-matte">
+        <div className="bg-brand-matte shadow-neu-out p-12 rounded-[3rem] border border-white/5 text-center">
+          <h1 className="text-white text-3xl font-black uppercase italic tracking-tighter mb-4">
+            Auth Required
+          </h1>
+          <p className="text-gray-500 font-bold uppercase text-[10px] tracking-widest">
+            Login to view your print archive
+          </p>
+        </div>
+      </div>
+    );
   }
 
   return (
-    <>
-    
-    <div className="min-h-screen p-2 sm:p-4 mt-20">
-      <BackgroundGradient className="p-2">
-        <div className="bg-gray-900 rounded-lg sm:rounded-[22px] p-3 sm:p-10 relative z-10">
-          <h1 className="w-full text-center text-xl sm:text-2xl font-bold mb-4 px-2 text-white">
-            My Orders
-          </h1>
-          <hr className="mb-4" />
-
-          <Suspense
-            fallback={
-              <div className="flex items-center justify-center min-h-[200px]">
-                <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-white"></div>
-              </div>
-            }
-          >
-            {orderDetails.length > 0 ? (
-              <div className="grid gap-3 sm:gap-4 grid-cols-1 sm:grid-cols-2 md:grid-cols-3">
-                {orderDetails.map((details, index) => (
-                  <div
-                    key={index}
-                    className="p-3 sm:p-4 border border-gray-700 rounded-lg shadow-lg bg-gray-900/90 backdrop-blur-sm hover:border-gray-500 transition-colors"
-                  >
-                    <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 mb-3">
-                      <h2 className="font-medium text-base break-all text-white">
-                        #{(details.orderId || "NO-ID").slice(-6)}
-                      </h2>
-                      <span
-                        className={`px-3 py-1 rounded-full text-xs font-medium w-full sm:w-auto text-center text-white ${
-                          details.status === "Completed"
-                            ? "bg-green-500"
-                            : details.status === "Pending"
-                            ? "bg-yellow-500"
-                            : details.status === "Ready to Pickup"
-                            ? "bg-blue-500"
-                            : "bg-gray-500"
-                        }`}
-                      >
-                        {details.status}
-                      </span>
-                    </div>
-
-                    <div className="flex items-center justify-between mb-2 bg-gray-800/50 p-2 rounded">
-                      <span className="text-gray-200 text-sm">Total Price:</span>
-                      <div className="flex items-center text-white">
-                        <CurrencyRupeeIcon className="h-4 w-4" />
-                        <span className="text-lg font-semibold">
-                          {details.cost}
-                        </span>
-                      </div>
-                    </div>
-
-                    <div className="text-gray-300 text-xs">
-                      {format(details.date, "MMM dd, yyyy - hh:mm a")}
-                    </div>
-
-                    <div className="text-white text-sm mt-2">
-                      <span className="font-semibold">OTP:</span> {details.otp}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <div className="text-center py-10">
-                <p className="text-gray-200">No orders found</p>
-              </div>
-            )}
-          </Suspense>
+    <div className="min-h-screen bg-brand-matte py-24 px-6 transform-gpu antialiased">
+      <div className="max-w-6xl mx-auto">
+        {/* Header Section */}
+        <div className="flex flex-col md:flex-row justify-between items-end mb-16 gap-8">
+          <div className="relative">
+            <div className="inline-flex items-center gap-2 bg-brand-matte shadow-neu-in px-4 py-1.5 rounded-full mb-4 border border-white/5">
+              <div className="w-1.5 h-1.5 bg-brand-cyan rounded-full shadow-glow-cyan animate-pulse" />
+              <span className="text-gray-500 font-black text-[9px] uppercase tracking-[0.3em]">
+                Activity Log
+              </span>
+            </div>
+            <h1 className="text-5xl md:text-7xl font-black text-white uppercase italic tracking-tighter">
+              My{" "}
+              <span className="text-brand-cyan drop-shadow-glow-cyan">
+                Orders
+              </span>
+            </h1>
+          </div>
+          <div className="bg-brand-matte shadow-neu-in px-6 py-3 rounded-2xl border border-white/5">
+            <p className="text-gray-400 font-black uppercase text-[10px] tracking-[0.2em]">
+              Archive Count:{" "}
+              <span className="text-brand-cyan">{orderDetails.length}</span>
+            </p>
+          </div>
         </div>
-      </BackgroundGradient>
+
+        <Suspense fallback={<PacmanLoader color="#22d3ee" />}>
+          {loading ? (
+            <div className="flex flex-col items-center justify-center py-32">
+              <PacmanLoader color="#22d3ee" size={40} />
+              <p className="mt-10 font-black uppercase text-gray-600 tracking-widest text-xs">
+                Synchronizing History...
+              </p>
+            </div>
+          ) : orderDetails.length > 0 ? (
+            <div className="grid gap-8 grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
+              {orderDetails.map((details, index) => (
+                <OrderCard key={index} details={details} />
+              ))}
+            </div>
+          ) : (
+            <div className="text-center py-24 bg-brand-matte shadow-neu-in rounded-[3rem] border border-dashed border-white/10">
+              <p className="text-gray-600 font-black uppercase text-lg italic tracking-widest">
+                No prints found in archive.
+              </p>
+            </div>
+          )}
+        </Suspense>
+      </div>
     </div>
-    </>
+  );
+}
+
+function OrderCard({ details }: { details: OrderDetails }) {
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case "Completed":
+        return "text-brand-cyan shadow-glow-cyan";
+      case "Pending":
+        return "text-brand-yellow shadow-glow-yellow";
+      case "Ready to Pickup":
+        return "text-brand-purple shadow-glow-purple";
+      default:
+        return "text-white";
+    }
+  };
+
+  return (
+    <div className="group bg-brand-matte shadow-neu-out p-8 rounded-[2.5rem] border border-white/5 transition-all duration-300 transform-gpu md:hover:scale-[1.02] active:shadow-neu-in">
+      {/* Card Header: ID & Status */}
+      <div className="flex justify-between items-start mb-8">
+        <div>
+          <span className="block text-[9px] font-black uppercase text-gray-600 tracking-[0.2em] mb-1">
+            Serial Hash
+          </span>
+          <h2 className="font-black text-xl text-white uppercase italic tracking-tighter">
+            #{details.orderId.slice(-6)}
+          </h2>
+        </div>
+        <div
+          className={`text-[10px] font-black uppercase tracking-widest ${getStatusColor(details.status)}`}
+        >
+          {details.status}
+        </div>
+      </div>
+
+      {/* Cost Module: Recessed */}
+      <div className="bg-brand-matte shadow-neu-in p-5 rounded-2xl border border-white/5 mb-6 flex justify-between items-center">
+        <span className="font-black uppercase text-[9px] tracking-widest text-gray-600">
+          Billing
+        </span>
+        <div className="flex items-center font-black text-white text-xl italic">
+          <CurrencyRupeeIcon fontSize="small" className="text-brand-cyan" />
+          {details.cost}
+        </div>
+      </div>
+
+      {/* Details List */}
+      <div className="space-y-4">
+        <div className="flex justify-between items-center pb-3 border-b border-white/5">
+          <span className="text-[9px] font-black uppercase text-gray-600 tracking-widest">
+            Logged At
+          </span>
+          <span className="text-[9px] font-bold text-gray-400 uppercase tracking-tight">
+            {format(details.date, "MMM dd • hh:mm a")}
+          </span>
+        </div>
+
+        {/* OTP Module: The "Glow" slot */}
+        <div className="flex justify-between items-center bg-brand-matte shadow-neu-in-sm p-4 rounded-xl border border-white/5">
+          <span className="text-[10px] font-black uppercase text-gray-500 tracking-widest">
+            OTP Token
+          </span>
+          <span className="text-xl font-black tracking-[0.2em] text-brand-cyan drop-shadow-glow-cyan italic">
+            {details.otp}
+          </span>
+        </div>
+      </div>
+    </div>
   );
 }

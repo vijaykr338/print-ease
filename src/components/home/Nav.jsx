@@ -1,140 +1,114 @@
-'use client';
+"use client";
 
-import { useEffect, useState } from 'react';
-import { useSession, signOut as nextAuthSignOut } from 'next-auth/react';
-import Image from 'next/image';
-import SignIn from '../sign-in';
-import Link from 'next/link';
+import Link from "next/link";
+import SignIn from "../sign-in";
+import { usePathname } from "next/navigation";
+import { useEffect, useState } from "react";
+import MenuIcon from "@mui/icons-material/Menu";
+import { useSession, signOut as nextAuthSignOut } from "next-auth/react";
+import Image from "next/image";
 
-export default function Nav() {
-  const [menuOpen, setMenuOpen] = useState(false);
-  const [profileOpen, setProfileOpen] = useState(false);
+export default function NavbarComponent() {
+  const pathname = usePathname();
   const { data: session } = useSession();
+  const [isMounted, setIsMounted] = useState(false);
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
 
-  const toggleMenu = () => setMenuOpen(prev => !prev);
-  const closeMenu = () => setMenuOpen(false);
-  const toggleProfile = () => setProfileOpen(prev => !prev);
+  useEffect(() => setIsMounted(true), []);
+  if (!isMounted) return null;
 
-  const navLinks=[
-    {title:"Home",
-    path:"/"
-  },
-    {title:"Upload File",
-    path:"/Start"
-  },
-    {title:"My Prints",
-    path:"/my-prints"
-  },
-  
-  ]
-  const handleSignOut = async () => {
-    await nextAuthSignOut({ callbackUrl: '/' });
-  };
-
-  useEffect(() => {
-    // Optional enhancements (resize/scroll/etc)
-  }, []);
+  const handleSignOut = () => nextAuthSignOut({ callbackUrl: "/" });
 
   return (
-    <section id="header" className="bg-neutral-900 text-white">
-      <header className="container mx-auto px-4 py-4">
-        <nav className="flex items-center justify-between">
-          {/* Logo */}
-          <div className="flex items-center">
-            <a href="/" className="text-2xl font-bold text-white">
-              PrintEase<span className="text-[#6C63FF]">.</span>
-            </a>
-          </div>
+    <nav className="fixed top-4 left-1/2 -translate-x-1/2 w-[92%] max-w-6xl z-50 transform-gpu">
+      {/* Main Nav Pill: Raised Shadow */}
+      <div className="bg-brand-matte shadow-neu-out rounded-full px-6 py-2.5 flex items-center justify-between border border-white/5">
+        {/* Logo with Cyan Glow Dot */}
+        <Link href="/" className="flex items-center gap-2 group">
+          <div className="w-2 h-2 bg-brand-cyan rounded-full shadow-glow-cyan" />
+          <span className="text-lg font-black text-white uppercase italic tracking-tighter">
+            Print<span className="text-brand-cyan">Ease</span>
+          </span>
+        </Link>
 
-          {/* Desktop Navigation */}
-          <div className="hidden md:flex items-center space-x-8">
-            {navLinks.map(obj => (
-              <Link 
-                key={obj.title}
-                href={obj.path}
-                
-                className="text-white hover:text-[#00E0FF] transition-colors duration-300"
+        {/* Desktop Links */}
+        <div className="hidden md:flex items-center gap-1">
+          {[
+            { name: "Home", path: "/" },
+            { name: "Upload", path: "/Start" },
+            { name: "My Prints", path: "/my-prints", protected: true },
+          ].map((link) => {
+            const isActive = pathname === link.path;
+            const isDisabled = link.protected && !session;
+            return (
+              <Link
+                key={link.path}
+                href={isDisabled ? "#" : link.path}
+                className={`px-5 py-2 text-[10px] font-black uppercase tracking-widest transition-all rounded-full ${
+                  isActive
+                    ? "shadow-neu-in text-brand-cyan"
+                    : "text-gray-500 md:hover:text-gray-200"
+                } ${isDisabled ? "opacity-20 cursor-not-allowed" : ""}`}
               >
-                {obj.title}
+                {link.name}
               </Link>
-            ))}
+            );
+          })}
+        </div>
 
-            {/* Sign In / Profile */}
-            {session ? (
-              <div className="relative">
+        {/* Auth Section */}
+        <div className="flex items-center gap-3">
+          {session ? (
+            <div className="flex items-center gap-3">
+              <div className="p-1 rounded-full shadow-neu-in-sm border border-white/5">
                 <Image
-                  src={session.user?.image || '/default-image.png'}
-                  width={30}
-                  height={30}
-                  alt="Profile"
-                  className="rounded-full cursor-pointer"
-                  onClick={toggleProfile}
+                  src={session.user?.image || ""}
+                  width={28}
+                  height={28}
+                  alt="User"
+                  className="rounded-full opacity-80"
                 />
-                {profileOpen && (
-                  <div className="absolute right-0 mt-2 w-48 bg-gray-800 rounded-md shadow-lg py-2 z-30">
-                    <button
-                      onClick={handleSignOut}
-                      className="block px-4 py-2 text-white hover:bg-gray-700 w-full text-left"
-                    >
-                      Sign Out
-                    </button>
-                  </div>
-                )}
               </div>
-            ) : (
+              <button
+                onClick={handleSignOut}
+                className="hidden sm:block text-[9px] font-black uppercase text-gray-500 md:hover:text-red-400"
+              >
+                Exit
+              </button>
+            </div>
+          ) : (
+            <div className="scale-90">
               <SignIn />
-            )}
-          </div>
+            </div>
+          )}
 
-          {/* Mobile Menu Toggle */}
+          {/* Mobile Menu Button */}
           <button
-            onClick={toggleMenu}
-            className="md:hidden text-white focus:outline-none"
-            aria-label="Toggle menu"
-            aria-expanded={menuOpen}
+            onClick={() => setIsMenuOpen(!isMenuOpen)}
+            className="md:hidden w-10 h-10 rounded-full shadow-neu-sm flex items-center justify-center text-gray-400 active:shadow-neu-in-sm transition-all"
           >
-            {menuOpen ? (
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-              </svg>
-            ) : (
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
-              </svg>
-            )}
+            <MenuIcon fontSize="small" />
           </button>
-        </nav>
+        </div>
+      </div>
 
-        {/* Mobile Menu */}
-        {menuOpen && (
-          <div className="md:hidden pt-4 pb-2 border-t border-neutral-800 mt-4">
-            <nav className="flex flex-col space-y-4">
-              {navLinks.map(obj => (
-                <Link
-                  key={obj.title}
-                  href={obj.path}
-                  onClick={closeMenu}
-                  className="text-white hover:text-[#00E0FF] transition-colors duration-300"
-                >
-                  {obj.title}
-                </Link>
-              ))}
-              <div className="pt-2">
-                {session ? (
-                  <button
-                    onClick={handleSignOut}
-                    className="text-white hover:text-[#FF6B6B] transition-colors"
-                  >
-                    Sign Out
-                  </button>
-                ) : (
-                  <SignIn />
-                )}
-              </div>
-            </nav>
-          </div>
-        )}
-      </header>
-    </section>
+      {/* Mobile Dropdown */}
+      {isMenuOpen && (
+        <div className="md:hidden mt-3 bg-brand-matte shadow-neu-out rounded-[2rem] p-6 border border-white/5 flex flex-col gap-4 animate-in slide-in-from-top-2">
+          <Link
+            href="/"
+            className="text-xs font-black uppercase text-gray-400 p-2 shadow-neu-in-sm rounded-xl text-center"
+          >
+            Home
+          </Link>
+          <Link
+            href="/my-prints"
+            className="text-xs font-black uppercase text-gray-400 p-2 shadow-neu-in-sm rounded-xl text-center"
+          >
+            My Prints
+          </Link>
+        </div>
+      )}
+    </nav>
   );
 }
