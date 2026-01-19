@@ -32,63 +32,68 @@ export default function MyPrints() {
   const [loading, setLoading] = useState(false);
   const router = useRouter();
 
+  // Your Logic: Syncing store to local state
   useEffect(() => {
     setFileData(store.filesWithConfigs);
   }, [store.filesWithConfigs]);
 
+  // Your Logic: Memoizing configs
   const fileConfigs = useMemo(() => {
     return Object.fromEntries(
-      fileData.map(({ file, config }) => [file.name, config])
+      fileData.map(({ file, config }) => [file.name, config]),
     );
   }, [fileData]);
 
+  // Your Logic: File Upload
   const handleFileUpload = useCallback((newFiles: File[]) => {
     setFileData((prevFileData) => {
       const existingFilesSet = new Set(
-        prevFileData.map((item) => item.file.name)
+        prevFileData.map((item) => item.file.name),
       );
       const duplicateFiles = newFiles.filter((file) =>
-        existingFilesSet.has(file.name)
+        existingFilesSet.has(file.name),
       );
 
       if (duplicateFiles.length > 0) {
         Swal.fire({
-          title: "Duplicate Files",
-          text: `These files are already uploaded:\n${duplicateFiles
-            .map((file) => file.name)
-            .join(", ")}`,
+          title: "DUPLICATE!",
+          text: `Already in the stack: ${duplicateFiles.map((f) => f.name).join(", ")}`,
           icon: "warning",
+          confirmButtonColor: "#121214",
         });
-        return prevFileData; // Prevent updating state
+        return prevFileData;
       }
 
       if (prevFileData.length + newFiles.length > 3) {
         Swal.fire({
-          title: "File Limit Exceeded",
+          title: "LIMIT REACHED",
           text: "You can upload a maximum of 3 files.",
           icon: "error",
+          confirmButtonColor: "#121214",
         });
         return prevFileData;
       }
 
       const validFiles = newFiles.filter(
         (file) =>
-          file.type === "application/pdf" && file.size < 30 * 1024 * 1024
+          file.type === "application/pdf" && file.size < 30 * 1024 * 1024,
       );
 
       if (validFiles.length !== newFiles.length) {
         Swal.fire({
-          title: "Invalid File",
+          title: "PDF ONLY",
           text: "Only PDF files under 30MB are allowed.",
           icon: "error",
+          confirmButtonColor: "#121214",
         });
         return prevFileData;
       }
 
       Swal.fire({
-        title: "Success",
-        text: "File Uploaded Successfully!",
+        title: "SUCCESS",
+        text: "File added to your stack!",
         icon: "success",
+        confirmButtonColor: "#22d3ee",
       }).then(() => {
         window.scrollTo(0, 0);
         setSelectedFile(null);
@@ -105,26 +110,28 @@ export default function MyPrints() {
             sided: "single",
             copies: 1,
             specificRange: "",
+            configured: false,
           },
         })),
       ];
     });
   }, []);
 
+  // Your Logic: File Delete
   const handleFileDelete = useCallback(
     (fileToDelete: File) => {
       Swal.fire({
-        title: "Are you sure?",
-        text: "This file will be permanently deleted.",
+        title: "REMOVE FILE?",
+        text: "This action cannot be undone.",
         icon: "warning",
         showCancelButton: true,
-        confirmButtonColor: "#d33",
-        cancelButtonColor: "#3085d6",
-        confirmButtonText: "Yes, delete it!",
+        confirmButtonColor: "#121214",
+        cancelButtonColor: "#ef4444",
+        confirmButtonText: "YES, REMOVE",
       }).then((result) => {
         if (result.isConfirmed) {
           setFileData((prev) =>
-            prev.filter(({ file }) => file !== fileToDelete)
+            prev.filter(({ file }) => file !== fileToDelete),
           );
           if (selectedFile === fileToDelete) setSelectedFile(null);
 
@@ -135,42 +142,41 @@ export default function MyPrints() {
         }
       });
     },
-    [fileData, selectedFile, router, store]
+    [fileData, selectedFile, router, store],
   );
 
+  // Your Logic: Save config
   const handleConfigSave = useCallback((fileName: string, config: any) => {
     setFileData((prev) =>
       prev.map((item) =>
         item.file.name === fileName
           ? { ...item, config: { ...config, configured: true } }
-          : item
-      )
+          : item,
+      ),
     );
-
-    setSelectedFile((prevSelected) =>
-      prevSelected?.name === fileName ? null : prevSelected
-    );
+    setSelectedFile(null);
   }, []);
 
+  // Your Logic: Print validation
   const handlePrint = useCallback(() => {
     const allConfigured = fileData.every(({ config }) => config?.configured);
 
     if (!allConfigured) {
       Swal.fire(
-        "Error",
+        "ERROR",
         "Please configure all files before printing.",
-        "error"
+        "error",
       );
       return;
     }
 
     Swal.fire({
-      title: "Confirm Print",
-      text: "Are you sure you want to proceed with printing?",
+      title: "CONFIRM PRINT?",
+      text: "Proceeding to checkout...",
       icon: "question",
       showCancelButton: true,
-      confirmButtonText: "Yes, proceed",
-      cancelButtonText: "Cancel",
+      confirmButtonText: "YES, PROCEED",
+      confirmButtonColor: "#9333ea",
     }).then((result) => {
       if (result.isConfirmed) {
         store.clearAll();
@@ -180,22 +186,22 @@ export default function MyPrints() {
     });
   }, [fileData, store, router]);
 
+  // Your Logic: File Click
   const handleFileClick = useCallback(
     (file: File) => {
-      if (selectedFile === file) {
-        setSelectedFile(null);
-      } else {
-        setSelectedFile(file);
-      }
+      setSelectedFile(selectedFile === file ? null : file);
       setErrorMessage(null);
     },
-    [selectedFile]
+    [selectedFile],
   );
 
+  // Your Logic: Preview Renderer
   const renderPreview = useMemo(() => {
     if (!selectedFile) {
       return (
-        <p className="text-gray-500 p-4">File not found or cannot be loaded.</p>
+        <p className="text-gray-600 font-bold p-10 text-center uppercase tracking-widest text-xs">
+          Select a file to preview
+        </p>
       );
     }
 
@@ -203,7 +209,7 @@ export default function MyPrints() {
       const fileURL = URL.createObjectURL(selectedFile);
       return (
         <Worker workerUrl="https://unpkg.com/pdfjs-dist@3.11.174/build/pdf.worker.min.js">
-          <div style={{ height: "750px" }}>
+          <div className="h-[600px] bg-brand-matte p-2">
             <Viewer fileUrl={fileURL} />
           </div>
         </Worker>
@@ -212,30 +218,30 @@ export default function MyPrints() {
 
     if (selectedFile.type.startsWith("image/")) {
       return (
-        <Image
-          src={URL.createObjectURL(selectedFile)}
-          alt="Preview"
-          className="w-full rounded-lg"
-        />
+        <div className="p-4 bg-brand-matte">
+          <Image
+            src={URL.createObjectURL(selectedFile)}
+            alt="Preview"
+            width={800}
+            height={600}
+            className="w-full h-auto rounded-2xl shadow-neu-out"
+          />
+        </div>
       );
     }
 
-    return (
-      <p className="text-gray-500 p-4">
-        Preview not available for this file type.
-      </p>
-    );
+    return <p className="text-red-500 font-black p-4">Format not supported.</p>;
   }, [selectedFile]);
 
+  // Your Logic: Collage Save
   const handleCollageSave = useCallback(
     async (collageElement: HTMLElement) => {
-      setLoading(true); // Set loading state to true
-
+      setLoading(true);
       try {
         const canvas = await html2canvas(collageElement, {
-          scale: 2, // Optimize scale for performance
+          scale: 2,
           useCORS: true,
-          backgroundColor: null,
+          backgroundColor: "#ffffff",
         });
 
         const dataURL = canvas.toDataURL("image/png");
@@ -245,13 +251,18 @@ export default function MyPrints() {
         const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
 
         pdf.addImage(dataURL, "PNG", 0, 0, pdfWidth, pdfHeight, "", "FAST");
-        const pdfBlob = pdf.output("blob");
+        const file = new File(
+          [pdf.output("blob")],
+          `collage-${Date.now()}.pdf`,
+          {
+            type: "application/pdf",
+          },
+        );
 
-        const file = new File([pdfBlob], "collage.pdf", {
-          type: "application/pdf",
-        });
-
-        setFileData((prevData) => [...prevData, { file, config: {} }]); // Assuming an empty config
+        setFileData((prevData) => [
+          ...prevData,
+          { file, config: { configured: false } },
+        ]);
         store.addFile(file, {
           color: "b&w",
           orientation: "portrait",
@@ -263,190 +274,217 @@ export default function MyPrints() {
           totalPrice: 0,
           pageSize: 0,
           configured: false,
-          pageType:"normal"
-        }); // Add the collage PDF to the store with a default config
+          pageType: "normal",
+        });
 
-        Swal.fire("Success", "Collage Saved", "success").then(() => {
+        Swal.fire("SUCCESS", "Collage Ready!", "success").then(() => {
           setIsCollageEditorOpen(false);
         });
       } catch (error) {
-        console.error("Error exporting collage:", error);
-        Swal.fire("Error", "Failed to export collage. Try again!", "error");
+        Swal.fire("ERROR", "Failed to generate collage.", "error");
       } finally {
-        setLoading(false); // Set loading state to false
+        setLoading(false);
       }
     },
-    [store]
+    [store],
   );
 
   const handleCollageUpload = useCallback((newFiles: File[]) => {
     const validFiles = newFiles.filter((file) =>
-      file.type.startsWith("image/")
+      file.type.startsWith("image/"),
     );
-
     if (validFiles.length === 0) {
-      Swal.fire(
-        "Error",
-        "Invalid Format. Only JPG and PNG files are allowed.",
-        "error"
-      );
+      Swal.fire("ERROR", "Only JPG/PNG allowed.", "error");
       return;
     }
-
     setCollageImages(validFiles);
     setIsCollageEditorOpen(true);
   }, []);
 
   return (
-    <div className={`bg-gray-800  max-w-2xl mx-auto p-6 mt-10`}>
-      <div className="space-y-4">
-        <h2 className="text-xl text-white font-semibold mb-4">
-          Uploaded Files
-        </h2>
-        <p className="text-gray-300 text-sm font-light">
-          Click on the file to set the configurations.
-        </p>
-        {fileData.map(({ file }, index) => (
-          <div
-            key={index}
-            className={`flex justify-between items-center cursor-pointer p-4 bg-gray-900 text-white  rounded-lg ${
-              selectedFile === file ? "ring-2 ring-blue-500" : ""
-            }`}
-            onClick={() => handleFileClick(file)} // Apply click handler to the entire div
-          >
-            <span>
-              {file.name}{" "}
-              {fileData.find((item) => item.file.name === file.name)?.config
-                .configured ? (
-                <TaskAltIcon className="text-green-500" />
-              ) : (
-                ""
-              )}
+    <div className="min-h-screen bg-brand-matte py-12 px-4 antialiased transform-gpu">
+      <div className="max-w-4xl mx-auto">
+        {/* Title Section */}
+        <div className="text-center mb-16 relative">
+          <div className="inline-flex items-center gap-2 bg-brand-matte shadow-neu-in px-4 py-2 rounded-full mb-6 border border-white/5">
+            <div className="w-1.5 h-1.5 bg-brand-cyan rounded-full shadow-glow-cyan animate-pulse" />
+            <span className="text-gray-500 font-black text-[10px] uppercase tracking-[0.3em]">
+              {fileData.length}/3 Slots Filled
             </span>
-            <button
-              onClick={(e) => {
-                e.stopPropagation(); // Prevent triggering the div click event
-                handleFileDelete(file);
-              }}
-              className="text-red-500 hover:text-red-700"
-            >
-              <DeleteIcon />
-            </button>
           </div>
-        ))}
+          <h1 className="text-5xl md:text-7xl font-black text-white tracking-tighter uppercase italic leading-none">
+            My{" "}
+            <span className="text-brand-cyan drop-shadow-glow-purple">
+              Order
+            </span>{" "}
+            Stack
+          </h1>
+        </div>
 
+        {/* Files List Section - Recessed Tray */}
+        <div className="bg-brand-matte shadow-neu-in p-6 md:p-8 rounded-[3rem] border border-white/5 mb-10">
+          <div className="space-y-6">
+            {fileData.map(({ file }, index) => (
+              <div
+                key={index}
+                onClick={() => handleFileClick(file)}
+                className={`flex justify-between items-center p-6 rounded-3xl cursor-pointer transition-all duration-300 transform-gpu
+                  ${
+                    selectedFile === file
+                      ? "shadow-neu-in-sm translate-y-0.5"
+                      : "shadow-neu-out md:hover:scale-[1.01]"
+                  }`}
+              >
+                <div className="flex items-center gap-5">
+                  <div
+                    className={`w-12 h-12 rounded-2xl flex items-center justify-center shadow-neu-sm border border-white/5 transition-all
+                    ${fileConfigs[file.name]?.configured ? "text-brand-cyan shadow-glow-cyan" : "text-gray-600"}`}
+                  >
+                    {fileConfigs[file.name]?.configured ? (
+                      <TaskAltIcon />
+                    ) : (
+                      <span className="font-black italic text-sm">
+                        0{index + 1}
+                      </span>
+                    )}
+                  </div>
+                  <div className="max-w-[150px] md:max-w-md">
+                    <h3
+                      className={`font-black uppercase tracking-tight truncate italic transition-colors ${selectedFile === file ? "text-brand-cyan" : "text-gray-300"}`}
+                    >
+                      {file.name}
+                    </h3>
+                    <p className="text-[10px] font-bold text-gray-600 uppercase tracking-widest mt-1">
+                      {fileConfigs[file.name]?.configured
+                        ? "Configuration Locked"
+                        : "Setup Required"}
+                    </p>
+                  </div>
+                </div>
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleFileDelete(file);
+                  }}
+                  className="w-11 h-11 rounded-xl shadow-neu-sm text-gray-600 hover:text-red-400 active:shadow-neu-in-sm transition-all flex items-center justify-center border border-white/5"
+                >
+                  <DeleteIcon fontSize="small" />
+                </button>
+              </div>
+            ))}
+            {fileData.length === 0 && (
+              <div className="py-10 text-center text-gray-700 font-bold uppercase text-xs tracking-[0.4em]">
+                Empty Tray
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Config Modal / Overlay */}
         {selectedFile && (
-          <div className="mt-8">
-            <h2 className="text-xl font-semibold mb-4 sm:text-xs md:text-lg">
-              <span className="text-gray-500 dark:text-gray-400">
-                {" "}
-                Preview:{" "}
-              </span>
-              <span className="text-white">{selectedFile.name}</span>
-            </h2>
-            {renderPreview}
+          <div className="fixed inset-0 z-[100] bg-brand-matte/95 backdrop-blur-md flex items-center justify-center p-4">
+            <div className="bg-brand-matte shadow-neu-out rounded-[3rem] w-full max-w-6xl max-h-[95vh] overflow-y-auto border border-white/10 p-2">
+              <div className="sticky top-0 bg-brand-matte/80 backdrop-blur-md p-8 flex justify-between items-center z-20 border-b border-white/5">
+                <h2 className="text-xl font-black text-white uppercase italic tracking-tighter flex items-center gap-3">
+                  <div className="w-2 h-2 bg-brand-cyan rounded-full shadow-glow-cyan" />
+                  Config: {selectedFile.name}
+                </h2>
+                <button
+                  onClick={() => setSelectedFile(null)}
+                  className="w-12 h-12 rounded-full shadow-neu-sm flex items-center justify-center text-gray-500 hover:text-white transition-all border border-white/5"
+                >
+                  ✕
+                </button>
+              </div>
 
-            <div className="mt-4">
-              <PrintConfig
-                selectedFile={selectedFile}
-                initialConfig={fileConfigs[selectedFile.name] || {}}
-                onSave={(config) => handleConfigSave(selectedFile.name, config)}
-                onClose={() => setSelectedFile(null)} // Pass onClose prop
-              />
+              <div className="p-8 grid grid-cols-1 lg:grid-cols-2 gap-12">
+                <div className="shadow-neu-in rounded-3xl overflow-hidden bg-black/20 p-2 min-h-[500px]">
+                  {renderPreview}
+                </div>
+                <div className="shadow-neu-out rounded-3xl p-8 border border-white/5">
+                  <PrintConfig
+                    selectedFile={selectedFile}
+                    initialConfig={fileConfigs[selectedFile.name] || {}}
+                    onSave={(config) =>
+                      handleConfigSave(selectedFile.name, config)
+                    }
+                    onClose={() => setSelectedFile(null)}
+                  />
+                </div>
+              </div>
             </div>
           </div>
         )}
 
-        <div className="mt-8">
+        {/* Action Buttons */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-10">
           <button
             onClick={() => document.getElementById("file-upload")?.click()}
-            className="w-full relative inline-flex  h-12 overflow-hidden rounded-full p-[1px] focus:outline-none focus:ring-2 focus:ring-slate-400 focus:ring-offset-2 focus:ring-offset-slate-50 "
+            className="bg-brand-matte shadow-neu-out p-6 rounded-2xl font-black uppercase text-xs tracking-widest text-gray-400 md:hover:text-brand-cyan active:shadow-neu-in transition-all border border-white/5 flex items-center justify-center gap-3"
           >
-            <span className="absolute inset-[-1000%] animate-[spin_2s_linear_infinite] bg-[conic-gradient(from_90deg_at_50%_50%,#E2CBFF_0%,#393BB2_50%,#E2CBFF_100%)]" />
-            <span className="inline-flex h-full w-full cursor-pointer items-center justify-center rounded-full bg-slate-950 px-3 py-1 text-sm font-medium text-white backdrop-blur-3xl gap-2">
-              <AddIcon />
-              Upload More Files
-            </span>
+            <AddIcon /> Add New PDF
           </button>
 
-          <input
-            id="file-upload"
-            type="file"
-            accept=".pdf" // Only accept PDF files
-            multiple
-            onChange={(e) => {
-              const newFiles = Array.from(e.target.files!);
-              if (newFiles.length > 3) {
-                Swal.fire(
-                  "Error",
-                  "You can upload a maximum of 3 files at a time.",
-                  "error"
-                );
-                return;
-              }
-              handleFileUpload(newFiles);
-            }}
-            className="hidden"
-          />
-        </div>
-
-        <div className="mt-4">
           <button
             onClick={() => document.getElementById("collage-upload")?.click()}
-            className="w-full relative inline-flex h-12 overflow-hidden rounded-full p-[1px] focus:outline-none focus:ring-2 focus:ring-slate-400 focus:ring-offset-2 focus:ring-offset-slate-50"
+            className="bg-brand-matte shadow-neu-out p-6 rounded-2xl font-black uppercase text-xs tracking-widest text-gray-400 md:hover:text-brand-purple active:shadow-neu-in transition-all border border-white/5 flex items-center justify-center gap-3"
           >
-            <span className="absolute inset-[-1000%] animate-[spin_2s_linear_infinite] bg-[conic-gradient(from_90deg_at_50%_50%,#E2CBFF_0%,#393BB2_50%,#E2CBFF_100%)]" />
-            <span className="text-white inline-flex h-full w-full cursor-pointer items-center justify-center rounded-full bg-black px-3 py-1 text-sm font-medium backdrop-blur-3xl gap-2">
-              <AddIcon />
-              Create Collage
-            </span>
+            <AddIcon /> Create Collage
           </button>
-
-          <input
-            id="collage-upload"
-            type="file"
-            accept=".jpg,.jpeg,.png"
-            multiple
-            onChange={(e) => {
-              const newFiles = Array.from(e.target.files!);
-              handleCollageUpload(newFiles);
-            }}
-            className="hidden"
-          />
         </div>
 
-        {errorMessage && (
-          <div className="mt-4 p-4 border border-red-700 rounded-lg">
-            <h2 className="font-semibold text-red-500">{errorMessage}</h2>
+        {/* Final Print Action */}
+        {fileData.length > 0 && (
+          <div className="mt-12">
+            <button
+              onClick={handlePrint}
+              className="w-full bg-brand-matte text-brand-cyan shadow-neu-out p-10 rounded-[3rem] font-black text-3xl md:text-5xl uppercase italic tracking-tighter border border-brand-cyan/20 md:hover:shadow-glow-cyan active:shadow-neu-in active:scale-[0.98] transition-all flex items-center justify-center gap-6 group"
+            >
+              <PrintIcon className="scale-150 group-hover:animate-pulse" />{" "}
+              Secure Prints
+            </button>
           </div>
         )}
 
-        <div className="mt-8 ">
-          <button
-            onClick={handlePrint}
-            className="w-full inline-flex h-12 animate-shimmer items-center justify-center rounded-md border border-slate-800 bg-[linear-gradient(110deg,#000103,45%,#1e2631,55%,#000103)] bg-[length:200%_100%] px-6 font-medium text-slate-400 transition-colors focus:outline-none focus:ring-2 focus:ring-slate-400 focus:ring-offset-2 focus:ring-offset-slate-50 gap-2"
-          >
-            <PrintIcon />
-            Print
-          </button>
-        </div>
+        {/* Hidden Inputs */}
+        <input
+          id="file-upload"
+          type="file"
+          accept=".pdf"
+          multiple
+          className="hidden"
+          onChange={(e) => handleFileUpload(Array.from(e.target.files!))}
+        />
+        <input
+          id="collage-upload"
+          type="file"
+          accept=".jpg,.jpeg,.png"
+          multiple
+          className="hidden"
+          onChange={(e) => handleCollageUpload(Array.from(e.target.files!))}
+        />
+
+        {/* Loader Overlay */}
+        {loading && (
+          <div className="fixed inset-0 z-[200] bg-brand-matte/95 flex flex-col items-center justify-center">
+            <PacmanLoader color="#22d3ee" size={40} />
+            <h2 className="text-brand-cyan font-black uppercase italic mt-12 tracking-[0.4em] animate-pulse text-sm">
+              Cooking your Order...
+            </h2>
+          </div>
+        )}
       </div>
 
+      {/* Collage Editor Overlay */}
       {isCollageEditorOpen && (
-        <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50">
-          <div className="bg-black p-6 rounded-lg max-w-4xl w-full flex justify-center items-center flex-col">
+        <div className="fixed inset-0 bg-brand-matte/95 flex items-center justify-center z-[110] p-4">
+          <div className="bg-brand-matte shadow-neu-out p-6 rounded-[3rem] max-w-5xl w-full border border-white/10">
             <CollageEditor
               initialImages={collageImages}
               onSave={handleCollageSave}
               onCancel={() => setIsCollageEditorOpen(false)}
             />
           </div>
-        </div>
-      )}
-
-      {loading && (
-        <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50">
-          <PacmanLoader color="#ffffff" loading={loading} size={50} />
         </div>
       )}
     </div>
