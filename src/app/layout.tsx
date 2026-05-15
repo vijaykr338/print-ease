@@ -12,6 +12,7 @@ const poppins = Poppins({ subsets: ["latin"], weight: ["400", "700"] });
 export const metadata: Metadata = {
   title: "InstaPrint",
   description: "Print Smart, Skip the Wait!",
+  manifest: "/manifest.json",
 };
 
 export default function RootLayout({
@@ -28,7 +29,7 @@ export default function RootLayout({
           <Nav/>
           <ServiceWorkerRegister></ServiceWorkerRegister>
           <main className="bg-black w-full">{children}</main>
-          <Footer/>
+        
         </SessionProvider>
       </body>
     </html>

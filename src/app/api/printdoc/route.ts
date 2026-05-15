@@ -16,7 +16,8 @@ export async function POST(req: Request) {
     
     
     // Validate request body
-    if (!body.userID || !body.fileID || !body.storeID || !body.status || !body.type || !body.cost || !body.paymentId) {
+    const incomingState = body.state || body.status;
+    if (!body.userID || !body.fileID || !body.storeID || !incomingState || !body.type || !body.cost || !body.paymentId) {
       return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
     }
 
@@ -39,7 +40,7 @@ export async function POST(req: Request) {
       userID: new ObjectId(body.userID),
       fileID: body.fileID.map((id: string) => new ObjectId(id)),
       storeID:body.storeID,
-      status: body.status,
+      state: incomingState,
       type: body.type,
       cost: body.cost,
       createdAt: new Date(),
@@ -49,7 +50,8 @@ export async function POST(req: Request) {
     
 
     
-    const notification_res = await axios.post(process.env.NEXT_PUBLIC_BASE_URL+"/api/notify-user",{
+    const origin = new URL(req.url).origin;
+    const notification_res = await axios.post(`${origin}/api/notify-user`,{
       userEmail:body.email,
       title:"Your print job is added to the queue",
       body: "You will be notified when the job is done"

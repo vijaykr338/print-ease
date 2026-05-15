@@ -38,9 +38,9 @@ const FaqSection: React.FC = () => {
   };
 
   return (
-    <section className="w-full py-16 sm:py-20 lg:py-24 ">
+    <section className="w-full py-12 sm:py-14 lg:py-16 ">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="text-center mb-12">
+        <div className="text-center mb-8">
           <h2 className="text-3xl font-bold tracking-tight text-white sm:text-4xl">
             Common Questions
           </h2>
@@ -77,7 +77,7 @@ const Accordion: React.FC<AccordionProps> = ({ question, answer }) => {
   const toggleOpen = () => setIsOpen(!isOpen);
 
   return (
-    <div className="bg-neutral-800 rounded-lg p-6 mb-4 w-[80vw]">
+    <div className="bg-neutral-800 rounded-lg p-5 mb-3 w-full max-w-3xl">
       <div
         className="flex justify-between items-center cursor-pointer"
         onClick={toggleOpen}

@@ -1,11 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 import mongoose from "mongoose";
-// import FileModel from "@/app/models/File"; // Adjust import path for your File model
-// import PrintDoc from "@/app/models/PrintDoc"; // Adjust import path for your PrintDoc model
 import axios from "axios";
 import { Config } from "@/interfaces";
-import { uploadFileToAzure } from "@/lib/server/utils";
+import { uploadFileToCloudinary } from "@/lib/server/utils";
 import {auth} from "@/lib/auth"
+import { createHash } from "crypto";
 
 export const config = {
   api: {
@@ -42,19 +41,19 @@ export async function POST(req: NextRequest) {
     // console.log(user);
     
     
-    // Extract paymentId, userId, and storeId
-    const paymentId = formData.get("paymentId") as string;
+    // Extract userId (upload-first flow: do not require payment here)
     const userId = formData.get("user_id") as string;
-    const storeId = "1"
+    const storeId = "1";
 
-    if (!paymentId || !userId || !storeId) {
+    if (!userId || !storeId) {
       return NextResponse.json(
-        { error: "Missing required fields: paymentId, user_id, or store_id" },
+        { error: "Missing required field: user_id" },
         { status: 400 }
       );
     }
 
     const filesWithConfigs=extract_files(formData);
+    const idempotencyKey = formData.get("idempotency_key") as string | null;
 
     if (filesWithConfigs.length === 0) {
       return NextResponse.json(
@@ -65,17 +64,35 @@ export async function POST(req: NextRequest) {
     
     const uploadedFileIds: mongoose.Types.ObjectId[] = [];
     let cost=0;
+    const origin = req.nextUrl.origin;
+    const ttlHours = Number(process.env.UPLOADED_TTL_HOURS || "24");
+
     for (const { file, config } of filesWithConfigs) {
-  
+
       console.log(`Uploading file: ${file.name} with config:`, config);
-      const link = await uploadFileToAzure(file);
+
+      // compute checksum
+      const arrayBuffer = await file.arrayBuffer();
+      const buffer = Buffer.from(arrayBuffer);
+      const checksum = createHash('sha256').update(buffer).digest('hex');
+
+      // upload
+      const { url: link, publicId } = await uploadFileToCloudinary(file);
       cost += config.totalPrice;
 
-      const url=process.env.NEXT_PUBLIC_BASE_URL+'/api/file';
-      
+      const expiresAt = new Date(Date.now() + ttlHours * 3600 * 1000).toISOString();
+
+      const url = `${origin}/api/file`;
+
       const file_create = await axios.post(url,{
         userId : userId,
         link:link,
+        publicId: publicId,
+        idempotency_key: idempotencyKey || null,
+        checksum: checksum,
+        state: 'uploaded',
+        uploadedAt: new Date().toISOString(),
+        expiresAt: expiresAt,
         color:config.color,
         orientation : config.orientation,
         sided:config.sided,
@@ -86,28 +103,13 @@ export async function POST(req: NextRequest) {
         pagesToPrint :config.pagesToPrint,
       })
       uploadedFileIds.push(file_create.data.id);
-      
 
       console.log(`Uploaded "${file.name}" successfully`);
     }
 
-    // Create a new PrintDoc instance
-    const printDoc_create = await axios.post((process.env.NEXT_PUBLIC_BASE_URL+"/api/printdoc"),{
-      userID: userId,
-      fileID: uploadedFileIds,
-      storeID: "0001",
-      status: "pending",
-      type: "print",
-      cost: cost,
-      paymentId: paymentId,
-      email:session!.user!.email!
-    });
-    
-    console.log("printdoc instance created");
-    
-
+    // Return file ids and cost; client should initiate payment using these file IDs
     return NextResponse.json(
-      { message: "Files uploaded and PrintDoc created successfully" },
+      { message: "Files uploaded successfully", fileIDs: uploadedFileIds, cost },
       { status: 200 }
     );
   } catch (error: any) {

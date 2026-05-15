@@ -1,10 +1,11 @@
 // components/HeroSection.jsx
 "use client"
 import { ArrowRightIcon, UploadIcon, CreditCardIcon, BellIcon } from "lucide-react"
+import StartButton from "@/components/StartButton"
 
 export default function HeroSection() {
   return (
-    <section className="pt-8 md:pt-0 relative overflow-hidden bg-gradient-to-b from-[#121620] via-[#1A1E2E] to-black min-h-[90vh] flex items-center">
+    <section className="pt-6 md:pt-0 relative overflow-hidden bg-gradient-to-b from-[#121620] via-[#1A1E2E] to-black min-h-[80vh] flex items-center">
       
       {/* Content */}
       <div className="relative z-10 mx-auto max-w-7xl px-6 flex flex-col md:flex-row items-center justify-between w-full">
@@ -18,14 +19,14 @@ export default function HeroSection() {
             Cuz no one likes standing in rush outside the shop<br/> To get the damn college assignments printed
           </p>
           <div className="mt-8 flex gap-4">
-            <button className="inline-flex items-center px-6 py-3 rounded-lg bg-gradient-to-r from-[#4B6BFB] to-[#9747FF] text-white font-semibold shadow-lg hover:scale-105 transition-transform">
+            <StartButton className="inline-flex items-center px-6 py-3 rounded-lg bg-gradient-to-r from-[#4B6BFB] to-[#9747FF] text-white font-semibold shadow-lg hover:scale-105 transition-transform">
               <UploadIcon className="h-5 w-5 mr-2" />
               Start Printing
               <ArrowRightIcon className="h-5 w-5 ml-2" />
-            </button>          
+            </StartButton>
           </div>
           {/* Features */}
-          <div className="mt-10 flex gap-8 flex-col">
+          <div className="mt-8 flex gap-6 flex-col">
             <div className="flex items-center gap-2">
               <UploadIcon className="h-6 w-6 text-[#4B6BFB]" />
               <span className="text-gray-300">Secure Uploads</span>
@@ -38,7 +39,7 @@ export default function HeroSection() {
         </div>
 
         {/* Right: Visual Workflow Illustration */}
-        <div className="mt-16 md:mt-0 md:ml-12 flex-1 flex justify-center">
+        <div className="mt-10 md:mt-0 md:ml-12 flex-1 flex justify-center">
           <div className="relative w-80 h-80 flex items-center justify-center">
             {/* Workflow steps */}
             <div className="absolute left-0 top-1/2 -translate-y-1/2 flex flex-col items-center">

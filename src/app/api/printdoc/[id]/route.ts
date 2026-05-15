@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import clientPromise from "@/lib/db";
 import { ObjectId } from "mongodb";
-import { deleteFileFromAzure } from "@/lib/server/utils";
+import { deleteFileFromCloudinary } from "@/lib/server/utils";
 import axios from "axios";
 
 // GET: Fetch PrintDoc by ID
@@ -95,8 +95,8 @@ export async function DELETE(req: NextRequest, { params }: { params: Promise<{ i
     // Delete associated files
     for (const fileId of printDoc.fileID) {
       const fileDoc = await FileCollection.findOne({ _id: fileId });
-      if (fileDoc) {
-        await deleteFileFromAzure(fileDoc.link); // Call Azure delete function
+      if (fileDoc?.publicId) {
+        await deleteFileFromCloudinary(fileDoc.publicId);
       }
     }
     await FileCollection.deleteMany({ _id: { $in: printDoc.fileID } });

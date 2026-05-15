@@ -28,7 +28,7 @@ export default function OrderHistory() {
     const fetchOrders = async () => {
       try {
         const { data } = await axios.get(
-          `${process.env.NEXT_PUBLIC_BASE_URL}/api/printdoc?user_id=${session.user?.id}`
+          `/api/printdoc?user_id=${session.user?.id}`
         );
 
         const transformedOrders: OrderDetails[] = data.map((order: any) => ({

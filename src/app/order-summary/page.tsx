@@ -64,8 +64,25 @@ export default function OrderSummary() {
         return;
       }
 
+      // First upload files (upload-first flow) with an idempotency key
+      const idempotencyKey = typeof crypto !== 'undefined' && typeof (crypto as any).randomUUID === 'function' ? (crypto as any).randomUUID() : String(Date.now()) + Math.random().toString(36).slice(2);
+      const formData = new FormData();
+      formData.append("user_id", session?.user?.id || "");
+      formData.append("idempotency_key", idempotencyKey);
+      filesWithConfigs.forEach((fileWithConfig, index) => {
+        formData.append(`file_${index}`, fileWithConfig.file);
+        formData.append(`config_${index}`, JSON.stringify(fileWithConfig.config));
+      });
+
+      const uploadRes = await axios.post("/api/file_upload", formData, { withCredentials: true });
+      if (uploadRes.status !== 200) {
+        throw Error("Upload failed");
+      }
+
+      const { fileIDs, cost } = uploadRes.data;
+
       const data = await axios.post("/api/razorpay/create_order", {
-        totalPrice: totalPrice,
+        totalPrice: cost,
       });
 
       if (data.status === 500) {
@@ -81,25 +98,22 @@ export default function OrderSummary() {
         order_id: orderId,
         description: "Order Payment",
         handler: async (response: any) => {
-          const formData = new FormData();
-          formData.append("paymentId", response.razorpay_payment_id);
-          formData.append("user_id", session?.user?.id || "");
-
-          filesWithConfigs.forEach((fileWithConfig, index) => {
-            formData.append(`file_${index}`, fileWithConfig.file);
-            formData.append(
-              `config_${index}`,
-              JSON.stringify(fileWithConfig.config)
-            );
-          });
-
           setLoading(true);
+
+          // Verify payment and create PrintDoc on server
           await axios.post("/api/razorpay/verify_payment", {
             razorpay_order_id: response.razorpay_order_id,
             razorpay_payment_id: response.razorpay_payment_id,
             razorpay_signature: response.razorpay_signature,
+            userID: session?.user?.id || "",
+            fileIDs: fileIDs,
+            storeID: "0001",
+            type: "print",
+            cost: cost,
+            email: session?.user?.email || "",
+            idempotency_key: idempotencyKey
           });
-          await axios.post("/api/file_upload", formData,{withCredentials:true});
+
           Swal.fire("Success", "Payment successful", "success").then(() => {
             setLoading(false);
             router.push(`/my-prints`);

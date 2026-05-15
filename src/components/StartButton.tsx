@@ -2,7 +2,12 @@
 
 import { useSession, signIn } from "next-auth/react";
 
-export default function StartButton() {
+type StartButtonProps = {
+  className?: string;
+  children?: React.ReactNode;
+};
+
+export default function StartButton({ className, children }: StartButtonProps) {
   const { data: session } = useSession();
 
   const handleStartClick = async () => {
@@ -16,9 +21,12 @@ export default function StartButton() {
   return (
     <button
       onClick={handleStartClick}
-      className="bg-black text-white px-8 py-4 rounded-full hover:bg-gray-800 transition-colors text-center mr-1"
+      className={
+        className ||
+        "bg-black text-white px-8 py-4 rounded-full hover:bg-gray-800 transition-colors text-center mr-1"
+      }
     >
-      Print Now
+      {children || "Print Now"}
     </button>
   );
 }

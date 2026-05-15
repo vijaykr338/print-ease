@@ -5,11 +5,16 @@ export interface PrintDoc extends Document{
     userID: mongoose.Types.ObjectId;
     fileID: mongoose.Types.ObjectId[];
     storeID: mongoose.Types.ObjectId;
-    status: 'pending' | 'completed' | 'collected';
+    state: 'draft'|'uploading'|'uploaded'|'payment_processing'|'paid'|'queued'|'processing'|'completed'|'cancelled'|'expired'|'failed';
     type: string;
     cost: number;
     createdAt: Date;
     paymentId:string;
+    idempotency_key?: string;
+    failure_reason?: string;
+    failure_code?: string;
+    failure_stage?: string;
+    retry_count?: number;
     otp:string;
 }
 
@@ -29,9 +34,11 @@ const PrintDocSchema: Schema<PrintDoc> = new Schema({
         ref: "Store", 
         required: true,
     },
-    status: {
+    state: {
         type: String,
+        enum: ["draft","uploading","uploaded","payment_processing","paid","queued","processing","completed","cancelled","expired","failed"],
         required: true,
+        default: "draft",
     },
     type: {
         type: String,
@@ -50,12 +57,36 @@ const PrintDocSchema: Schema<PrintDoc> = new Schema({
         type:String,
         required : true
     },
+    idempotency_key: {
+        type: String,
+        required: false,
+    },
+    failure_reason: {
+        type: String,
+        required: false,
+    },
+    failure_code: {
+        type: String,
+        required: false,
+    },
+    failure_stage: {
+        type: String,
+        required: false,
+    },
+    retry_count: {
+        type: Number,
+        default: 0,
+    },
     otp:{
         type:String,
         required:true,
         default:"A0"      
     }
 })
+
+// Indexes for queries
+PrintDocSchema.index({ state: 1 });
+PrintDocSchema.index({ userID: 1, state: 1 });
 
 const PrintDocModel = (mongoose.models.PrintDoc as mongoose.Model<PrintDoc>) || mongoose.model<PrintDoc>("PrintDoc", PrintDocSchema)
 
