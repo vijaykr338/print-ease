@@ -7,11 +7,6 @@ import { Config } from "@/interfaces";
 import { uploadFileToCloudinary } from "@/lib/server/utils";
 import {auth} from "@/lib/auth"
 
-export const config = {
-  api: {
-    bodyParser: false, // Disable body parsing
-  },
-};
 
 function extract_files(formData : FormData){
   const filesWithConfigs: Array<{ file: File; config: Config }> = [];

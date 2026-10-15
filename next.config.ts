@@ -2,12 +2,22 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   /* config options here */
+  turbopack: {},
   webpack: (config) => {
     config.resolve.alias.canvas = false;
     return config;
   },
   images: {
-    domains: ['lh3.googleusercontent.com'], 
+    remotePatterns: [
+      {
+        protocol: "https",
+        hostname: "lh3.googleusercontent.com",
+      },
+      {
+        protocol: "https",
+        hostname: "res.cloudinary.com",
+      },
+    ],
   },
 };
 
